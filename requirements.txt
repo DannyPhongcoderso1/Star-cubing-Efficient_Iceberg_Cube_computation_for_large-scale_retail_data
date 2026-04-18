@@ -3,3 +3,4 @@ faker
 sqlalchemy
 pyodbc
 python-dotenv
+pytest
