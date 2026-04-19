@@ -35,10 +35,12 @@ def compute_star_cubing_cube(
                 "row dimension length must match the configured dimension count"
             )
 
-    support_by_dim: List[Dict[int, float]] = [defaultdict(float) for _ in range(dim_count)]
+    support_by_dimension_index: List[Dict[int, float]] = [
+        defaultdict(float) for _ in range(dim_count)
+    ]
     for row in materialized_rows:
         for dim_index, value in enumerate(row.dimensions):
-            support_by_dim[dim_index][value] += float(row.sales)
+            support_by_dimension_index[dim_index][value] += float(row.sales)
 
     aggregated: Dict[Tuple[DimensionValue, ...], Tuple[float, int]] = {}
 
@@ -47,12 +49,13 @@ def compute_star_cubing_cube(
         concrete_positions: List[int] = []
 
         for dim_index, value in enumerate(row.dimensions):
-            if support_by_dim[dim_index][value] < min_sup:
+            if support_by_dimension_index[dim_index][value] < min_sup:
                 compressed_values.append("ALL")
             else:
                 compressed_values.append(value)
                 concrete_positions.append(dim_index)
 
+        # Enumerate all roll-up combinations over concrete (non-ALL) positions.
         for mask in range(1 << len(concrete_positions)):
             key_values = list(compressed_values)
             for bit_index, position in enumerate(concrete_positions):
